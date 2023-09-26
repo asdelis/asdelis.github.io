@@ -1,13 +1,18 @@
 body {
-    background-color: black;
+    background-color: beige;
+    color: black;
+}
+
+h1 {
+    color: black;
 }
 
 p {
     font-family: 'Times New Roman', Times, serif;
-    color: aliceblue;
+    color: black;
 }
 
-ul {
+ol {
     font-family: 'Times New Roman', Times, serif;
-    color: aliceblue;
+    color: black;
 }
