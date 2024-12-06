@@ -30,6 +30,7 @@ This was my first time working with a very large and imperfect data set. My big 
 - Black box models are powerful, but aptly named
 
 [Here a PDF of the most essential parts of my analysis for the project](https://github.com/asdelis/asdelis.github.io/blob/main/data_analytics_projects/home_credit_kaggle_competition/home_credit_modeling.pdf)
+
 [Here is the full RMD file if you want to see all of my code for the project](https://github.com/asdelis/asdelis.github.io/blob/main/data_analytics_projects/home_credit_kaggle_competition/home_credit_modeling.Rmd)
 
 #### [Marketing Analytics Cases](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects/marketing_analytics_cases)
