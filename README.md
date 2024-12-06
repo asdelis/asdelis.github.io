@@ -1,4 +1,4 @@
-# portfolio_projects repository
+# Portfolio Projects
 
 This repository contains two main project collections:
 1. [Data Analytics Projects](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects)
