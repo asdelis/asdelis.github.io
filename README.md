@@ -1,16 +1,16 @@
 # portfolio_projects repository
 
 This repository contains two main project collections:
-1. [Data Analytics Projects](https://github.com/asdelis/portfolio_projects/tree/main/data_analytics_projects)
-2. [Java Projects](https://github.com/asdelis/portfolio_projects/tree/main/java_projects)
+1. [Data Analytics Projects](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects)
+2. [Java Projects](https://github.com/asdelis/asdelis.github.io/tree/main/java_projects)
 
-## [Data Analytics Projects](https://github.com/asdelis/portfolio_projects/tree/main/data_analytics_projects)
+## [Data Analytics Projects](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects)
 
 A compilation of data analytics projects that showcase my growing data analytics skills that currently includes:
 - A Kaggle competition project
 - Six marketing focused data analytics cases
 
-#### [Home Credit Kaggle Competition](https://github.com/asdelis/portfolio_projects/tree/main/data_analytics_projects/home_credit_kaggle_competition)
+#### [Home Credit Kaggle Competition](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects/home_credit_kaggle_competition)
 
 Home Credit is a loan provider with a mission to “broaden financial inclusion for the unbanked population by providing a positive and safe borrowing experience.” Understanding the real indicators for a prospective client’s repayment ability is imperative to their financial and existential missions.
 
@@ -29,7 +29,7 @@ This was my first time working with a very large and imperfect data set. My big 
 - Model tuning can be the most time consuming part of a machine learning project
 - Black box models are powerful, but aptly named
 
-#### [Marketing Analytics Cases](https://github.com/asdelis/portfolio_projects/tree/main/data_analytics_projects/marketing_analytics_cases)
+#### [Marketing Analytics Cases](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects/marketing_analytics_cases)
 
 A compilation of shorter data analytics projects focused on solving a marketing problem with a specific testing method or pre-processing technique.
 
@@ -37,6 +37,6 @@ Each marketing analytics case folder includes:
 - Case description of the marketing problem
 - Detailed RMarkdown analysis file
 
-## [Java Projects](https://github.com/asdelis/portfolio_projects/tree/main/java_projects)
+## [Java Projects](https://github.com/asdelis/asdelis.github.io/tree/main/java_projects)
 
 A collection of Java programming projects created during my semester in the University of Utah's MSD program. These projects showcase the fundamental programming skills and concepts that I learned through the MSD coursework.
