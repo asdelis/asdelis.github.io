@@ -1,0 +1,688 @@
+---
+title: "home_credit_modeling"
+output:
+  pdf_document: default
+  html_document: default
+date: "2024-11-06"
+---
+
+```{r, warning=FALSE, message=FALSE, include = FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tcltk)
+library(tidyverse)
+library(skimr)
+library(summarytools)
+library(janitor)
+library(caret)
+library(kernlab)
+library(rminer)
+library(randomForest)
+library(xgboost)
+library(pROC)
+library(dplyr)
+library(caret)
+library(fastDummies)
+library(rpart)
+library(jsonlite)
+library(tidyr)
+library(rattle)
+library(dataPreparation)
+library(factoextra)
+library(ggplot2 )
+library(cluster)
+library(fpc)
+library(kernlab)
+library(mclust)
+library(gplots)
+library(RColorBrewer)
+library(dendextend)
+library(circlize)
+library(NbClust)
+library(pROC)
+library(tinytex)
+
+# change names and csv names as needed
+application_train_xg <- read.csv("application_train.csv")
+application_test_xg <- read.csv("application_test.csv")
+bureau_xg <- read.csv("bureau.csv")
+
+```
+
+``` {r, include = FALSE}
+
+# Factoring all character variables
+at_clean <- application_train_xg %>%
+  mutate(across(where(is.character), as.factor))
+
+#Factoring all 'flag' varaibles
+at_clean <- at_clean %>%
+  mutate(across(matches("flag", ignore.case = TRUE), as.factor))
+
+# Factoring all binary numeric variables
+at_clean <- at_clean %>%
+  mutate(across(c(REG_REGION_NOT_LIVE_REGION,
+                  REG_REGION_NOT_WORK_REGION,
+                  LIVE_REGION_NOT_WORK_REGION,
+                  REG_CITY_NOT_LIVE_CITY,
+                  REG_CITY_NOT_WORK_CITY,
+                  LIVE_CITY_NOT_WORK_CITY,
+                  TARGET), as.factor))
+
+# Converting column names to lowercase
+at_clean <- at_clean %>% clean_names()
+
+# Defining all living situation variables that are unnecessary for modeling
+living_situation_vars <- c(
+  "apartments_avg", "basementarea_avg", "years_beginexpluatation_avg",
+  "years_build_avg", "commonarea_avg", "elevators_avg",
+  "entrances_avg", "floorsmax_avg", "floorsmin_avg",
+  "landarea_avg", "livingapartments_avg", "livingarea_avg",
+  "nonlivingapartments_avg", "nonlivingarea_avg", "apartments_mode",
+  "basementarea_mode", "years_beginexpluatation_mode", "years_build_mode",
+  "commonarea_mode", "elevators_mode", "entrances_mode",
+  "floorsmax_mode", "floorsmin_mode", "landarea_mode",
+  "livingapartments_mode", "livingarea_mode", "nonlivingapartments_mode",
+  "nonlivingarea_mode", "apartments_medi", "basementarea_medi",
+  "years_beginexpluatation_medi", "years_build_medi", "commonarea_medi",
+  "elevators_medi", "entrances_medi", "floorsmax_medi",
+  "floorsmin_medi", "landarea_medi", "livingapartments_medi",
+  "livingarea_medi", "nonlivingapartments_medi", "nonlivingarea_medi",  "totalarea_mode"
+)
+
+# Removing all living situation variables and a few others not defined before
+at_clean <- at_clean %>%
+  select(-all_of(living_situation_vars),
+         -fondkapremont_mode,
+         -housetype_mode,
+         -wallsmaterial_mode,
+         -emergencystate_mode)
+
+# Fixing the issues with days employed variable
+at_clean <- at_clean %>%
+  mutate(days_employed = ifelse(days_employed > 0, 0, days_employed))
+
+at_clean <- at_clean %>%
+  mutate(days_employed = abs(days_employed))
+
+# Simplifying the Occupation type variable
+at_clean <- at_clean %>%
+  mutate(occupation_type = case_when(
+    is.na(occupation_type) & days_employed > 0 ~ 'Not listed',
+    is.na(occupation_type) & days_employed == 0 ~ 'Unemployed',
+    TRUE ~ occupation_type  # Keep original value if not NA
+  )) %>% mutate(occupation_type = factor(occupation_type))
+
+# Removing all rows where name_type_suite is n/a
+at_clean <- at_clean %>%
+  filter(!is.na(name_type_suite))
+
+# Combining credit scores to an average credit score
+at_clean <- at_clean %>%
+  mutate(avg_credit_score = rowMeans(
+    select(., ext_source_1, ext_source_2, ext_source_3),
+    na.rm = TRUE
+  )) %>%
+  mutate(avg_credit_score = ifelse(is.na(avg_credit_score), 0, avg_credit_score))
+
+# Creating credit flags based on how many bureau credit scores are available
+at_clean <- at_clean %>%
+  mutate(
+    limited_credit_flag = case_when(
+      rowSums(!is.na(select(., ext_source_1, ext_source_2, ext_source_3))) %in% 1:2 ~ 1,
+      TRUE ~ 0
+    ),
+    no_credit_flag = case_when(
+      rowSums(is.na(select(., ext_source_1, ext_source_2, ext_source_3))) == 3 ~ 1,
+      TRUE ~ 0
+    ),
+    full_credit_flag = case_when(
+      rowSums(!is.na(select(., ext_source_1, ext_source_2, ext_source_3))) == 3 ~ 1,
+      TRUE ~ 0
+    )
+  ) %>%
+  mutate(
+    limited_credit_flag = factor(limited_credit_flag),
+    no_credit_flag = factor(no_credit_flag),
+    full_credit_flag = factor(full_credit_flag)
+  ) %>%
+  select(-ext_source_1, -ext_source_2, -ext_source_3)
+
+# Simplifying the own car age variable
+at_clean <- at_clean %>%
+  mutate(own_car_age = case_when(
+    is.na(own_car_age) ~ 'No car',
+    own_car_age >= 10 ~ '10+ years',
+    own_car_age < 10 ~ 'Less than 10 years'
+  )) %>%
+  mutate(own_car_age = as.factor(own_car_age))
+
+# Replacing n/a's with 0
+at_clean <- at_clean %>%
+  mutate(
+    amt_req_credit_bureau_hour = replace_na(amt_req_credit_bureau_hour, 0),
+    amt_req_credit_bureau_day = replace_na(amt_req_credit_bureau_day, 0),
+    amt_req_credit_bureau_week = replace_na(amt_req_credit_bureau_week, 0),
+    amt_req_credit_bureau_mon = replace_na(amt_req_credit_bureau_mon, 0),
+    amt_req_credit_bureau_qrt = replace_na(amt_req_credit_bureau_qrt, 0),
+    amt_req_credit_bureau_year = replace_na(amt_req_credit_bureau_year, 0)
+  )
+
+# Removing all rows where the following variables are n/a
+at_clean <- at_clean %>%
+  filter(
+    !is.na(amt_annuity) &
+    !is.na(obs_30_cnt_social_circle) &
+    !is.na(def_30_cnt_social_circle) &
+    !is.na(obs_60_cnt_social_circle) &
+    !is.na(def_60_cnt_social_circle) &
+    !is.na(days_last_phone_change)
+  )
+
+```
+
+```{r, include = FALSE}
+
+bureau <- clean_names(bureau_xg)
+bureau$credit_active <- as.factor(bureau$credit_active)
+bureau$credit_type <- as.factor(bureau$credit_type)
+bureau <- clean_names(bureau)
+
+bureau_agg <- bureau %>%
+  group_by(sk_id_curr) %>%
+  summarise(
+    total_past_due = sum(amt_credit_sum_overdue, na.rm = TRUE),  # Sum of past due amounts
+    number_of_accounts = n(),  # Count of rows per sk_id_curr
+    number_of_paid_accounts = sum(credit_active == 'Closed' & (is.na(amt_credit_sum_debt) | amt_credit_sum_debt == 0)),  # Count of paid off accounts
+    ct_mortgage_auto = sum(credit_type %in% c('Car loan', 'Mortgage', 'Real estate loan')),  # Count of mortgage and auto-related credit types
+    ct_chargoff_accts = sum(credit_active == 'Closed' & amt_credit_sum_debt > 0, na.rm = TRUE),  # Count of charge-off accounts
+    sum_chargoff_balance = sum(ifelse(credit_active == 'Closed' & amt_credit_sum_debt > 0, amt_credit_sum_debt, 0), na.rm = TRUE),  # Sum of charge-off balances
+    ct_paid_mortgage_auto = sum(credit_active == 'Closed' & (is.na(amt_credit_sum_debt) | amt_credit_sum_debt == 0) &
+                                credit_type %in% c('Car loan', 'Mortgage', 'Real estate loan'))  # Count of paid off mortgage/auto-related accounts
+  )
+
+```
+
+```{r, include = FALSE}
+
+at_join <- at_clean %>%
+  left_join(bureau_agg, by = "sk_id_curr")
+
+
+# converting NA's to 0's
+at_join <- at_join %>%
+  mutate(
+    total_past_due = replace_na(total_past_due, 0),
+    number_of_accounts = replace_na(number_of_accounts, 0),
+    number_of_paid_accounts = replace_na(number_of_paid_accounts, 0),
+    ct_mortgage_auto = replace_na(ct_mortgage_auto, 0),
+    ct_chargoff_accts = replace_na(ct_chargoff_accts, 0),
+    sum_chargoff_balance = replace_na(sum_chargoff_balance, 0),
+    ct_paid_mortgage_auto = replace_na(ct_paid_mortgage_auto, 0)
+  )
+
+```
+
+```{r, include = FALSE}
+
+#Remove all flag_document variables
+at_join <- at_join %>%
+  select(-starts_with("flag_document"))
+
+# Convert negative values to postiive
+at_join <- at_join %>%
+  mutate(
+    days_birth = abs(days_birth),
+    days_registration = abs(days_registration),
+    days_id_publish = abs(days_id_publish),
+    days_last_phone_change = abs(days_last_phone_change)
+  )
+
+# Create application type based on name_type_suite
+at_join <- at_join %>%
+  mutate(application_type = factor(ifelse(name_type_suite == "Unaccompanied", "Individual", "Co-applied"))) %>%
+  select(-name_type_suite, -organization_type)
+
+```
+
+```{r, include = FALSE }
+
+application_train <- application_train_xg
+application_test <- application_test_xg
+
+# create duplicate variables that will be used later in the decision tree method we do
+application_train_dt <- application_train
+application_test_dt <- application_test
+
+```
+
+```{r, include = FALSE }
+
+# One-Hot Encoding
+
+# initialize counter for label encoded columns
+le_count <- 0
+
+# function to perform label encoding (similar to Python's LabelEncoder)
+label_encode <- function(x) {
+  as.numeric(as.factor(x)) - 1  # Subtract 1 to make it 0-based like Python
+}
+
+# iterate through columns
+for (col in names(application_train)) {
+  
+  # check if column is character or factor
+  if ( is.character( application_train[[col]]) || is.factor(application_train[[col]])) {
+    
+    # if 2 or fewer unique categories
+    if (length(unique(application_train[[col]])) <= 2) {
+      
+      # create factors with same levels for both train and test
+      combined_levels <- unique(c(application_train[[col]], application_test[[col]]))
+      application_train[[col]] <- factor(application_train[[col]], levels = combined_levels)
+      application_test[[col]] <- factor(application_test[[col]], levels = combined_levels)
+      
+      # transform both training and testing data
+      application_train[[col]] <- label_encode(application_train[[col]])
+      application_test[[col]] <- label_encode(application_test[[col]])
+      
+      le_count <- le_count + 1
+    }
+  }
+}
+
+sprintf( "%d columns were label encoded.", le_count )
+
+```
+
+```{r, include = FALSE }
+
+# store target variable before encoding
+train_labels <- application_train$TARGET
+
+# apply one-hot encoding
+application_train <- dummy_cols( application_train, remove_first_dummy = TRUE, remove_selected_columns=TRUE )
+application_test <- dummy_cols( application_test, remove_first_dummy = TRUE, remove_selected_columns=TRUE )
+
+# verify shapes
+print( "Training Features shape: " )
+print( dim( application_train ) )
+print( "Testing Features shape: " )
+print( dim( application_test ) )
+
+```
+
+```{r, include = FALSE }
+
+# keep only columns present in both dataframes
+common_cols <- intersect( names( application_train ), names( application_test ) )
+application_train <- application_train[ , common_cols ]
+application_test <- application_test[ , common_cols ]
+
+# add the target back in
+application_train$TARGET <- train_labels
+
+print( "Training Features shape: " )
+print( dim( application_train ) )
+print( "Testing Features shape: " )
+print( dim( application_test ) )
+
+```
+```{r, warning=FALSE, message=FALSE, include = FALSE}
+
+# function to get summary of missing values
+missing_summary <- function( data ) {
+  
+  n_miss <- colSums( is.na( data ) )
+  prop_miss <- colMeans( is.na( data ) )
+  
+  missing_df <- data.frame(
+    variable = names (n_miss ),
+    n_missing = n_miss,
+    prop_missing = prop_miss
+  )
+  
+  return( missing_df[ order( -missing_df$n_missing ), ] )
+  
+}
+
+# function to impute missing values using multiple methods
+impute_missing <- function(data, method = "mean") {
+  
+  # make a copy of the data
+  imputed_data <- as.data.frame( data )
+  
+  # loop through each column
+  for( col in names( imputed_data ) ) {
+    if( any( is.na(imputed_data[[col]] ) ) ) {
+      
+      if( is.numeric( imputed_data[[col]] ) ) {
+        
+        # for numeric columns
+        if( method == "mean" ) {
+          imputed_data[[col]][is.na( imputed_data[[col]] )] <- mean( imputed_data[[col]], na.rm = TRUE )
+        } 
+        
+        else if( method == "median" ) {
+          imputed_data[[col]][is.na( imputed_data[[col]] )] <- median( imputed_data[[col]], na.rm = TRUE )
+        } 
+        
+        else if( method == "knn" ) {
+          
+          # requires VIM package
+          if( !require( VIM ) ) {
+            install.packages( "VIM" )
+            library( VIM )
+          }
+          
+          imputed_data[[col]] <- kNN( imputed_data[col] )[[1]]
+          
+        }
+      } 
+      
+      else {
+        
+        # for categorical columns
+        mode_val <- names( sort( table( imputed_data[[col]] ), decreasing = TRUE ) )[1]
+        imputed_data[[col]][is.na( imputed_data[[col]] )] <- mode_val
+        
+      }
+    }
+  }
+  
+  return( imputed_data )
+  
+}
+
+# call functions above
+application_train <- impute_missing( application_train, method = "mean" )
+application_test <- impute_missing( application_test, method = "mean" )
+
+# create duplicate variables that will be used later in the decision tree method we do
+application_train_dt <- application_train
+application_test_dt <- application_test
+
+# remove any non-numeric columns
+numeric_cols <- sapply( application_train, is.numeric )
+data_numeric <- application_train[ , numeric_cols ]
+
+# standardize the data ( mean = 0, sd = 1 )
+data_scaled <- scale( data_numeric )
+
+# convert back to data frame if needed
+application_train <- as.data.frame( data_scaled )
+
+# verify standardization
+colMeans( application_train )
+apply( application_train, 2, sd )
+
+```
+
+#### PCA
+```{r }
+
+# use the prcomp() function to calculate pca
+pca <- prcomp( application_train, scale = TRUE ) 
+ 
+# calculate cumulative variance explained
+pca.var <- pca$sdev^2
+pca.var.per <- pca.var / sum( pca.var )
+cumulative_variance <- cumsum( pca.var.per )
+
+# determine the number of PCs to retain that explain at least 80% of variance
+num_components <- which( cumulative_variance >= 0.80 )[ 1 ]
+
+# print summary
+cat( "Number of PCs retained:", num_components, "\n" )
+cat( "Cumulative variance explained:", cumulative_variance[num_components] * 100, "%\n" )
+
+#plot the results
+barplot( pca.var.per, 
+         main = "Scree Plot", 
+         xlab = "Principal Component", 
+         ylab = "Percent Variation" )
+
+# create PCA data frame using row numbers as sample IDs
+pca.data <- data.frame( sample = 1:nrow( pca$x ),
+                        X = pca$x[ ,1 ],
+                        Y = pca$x[ ,2 ] )
+
+# get the top 80% of the variance
+loading_scores <- pca$rotation[ ,1 ]
+scores <- abs( loading_scores )
+score_ranked <- sort( scores, decreasing = TRUE )
+top_pca <- names( score_ranked[ 1:125 ] )
+
+# show the top variables and their contributions
+data.frame( variable = top_pca,
+            loading = pca$rotation[ top_pca,1 ],
+            row.names = NULL )
+
+# create new dfs with the remaining pca names
+pca_application_train <- application_train |>
+  select( all_of( top_pca ) )
+
+# add target back
+pca_application_train$TARGET <- application_train_dt$TARGET
+
+```
+
+#### Base Decision Tree Model
+```{r }
+
+# convert TARGET to factor in training data with explicit levels
+application_train_dt$TARGET <- factor( application_train_dt$TARGET, levels = c( 1, 0 ) )
+
+# split training data into training and validation sets
+set.seed( 123 )
+train_index <- createDataPartition( application_train_dt$TARGET, 
+                                    p = 0.7, 
+                                    list = FALSE )
+train <- application_train_dt[ train_index, ]
+valid <- application_train_dt[ -train_index, ]
+
+# down sample to deal with imbalanced data issues
+set.seed(123)
+train <- downSample( x = train[ , -which( names( train ) == "TARGET" ) ],
+                     y = train$TARGET,
+                     yname = "TARGET" )
+
+# train model on training set
+tree_model <- rpart (TARGET ~ ., 
+                    data = train,
+                    method = "class",
+                    control = rpart.control( maxdepth = 5,
+                                             minsplit = 20,
+                                             cp = 0.01 ) )
+
+# evaluate on validation set
+valid_pred <- predict( tree_model, valid, type = "class" )
+confusion_matrix <- confusionMatrix( valid_pred, valid$TARGET )
+print( confusion_matrix )
+
+# predict on test data
+test_pred <- predict( tree_model, application_test_dt, type = "class" )
+application_test_dt$TARGET <- test_pred
+
+# Create a new data frame with only SK_ID_CURR and TARGET columns
+kaggle_sub <- application_test_dt[ , c( "SK_ID_CURR", "TARGET" ) ]
+
+# Export the new data frame as a CSV file
+write.csv( kaggle_sub, "kaggle_sub.csv", row.names = FALSE )
+
+```
+
+#### ROC Curve
+```{r }
+
+# get predicted probabilities for the validation set
+valid_probabilities <- predict( tree_model, valid, type = "prob" )
+ 
+# extract probabilities for positive class
+valid_prob_class1 <- valid_probabilities[ , "1" ]
+ 
+# generate ROC curve
+roc_curve <- roc( valid$TARGET, valid_prob_class1, levels = rev(levels( valid$TARGET ) ) )
+ 
+# plot the ROC curve
+plot( roc_curve, col = "blue", lwd = 2, main = "ROC Curve for Decision Tree Model" )
+ 
+# calculate AUC
+auc_value <- auc( roc_curve )
+print(paste( "AUC:", auc_value ) )
+
+```
+
+#### Decision Tree Model w/ PCA Data
+```{r }
+
+# convert TARGET to factor in training data with explicit levels
+pca_application_train$TARGET <- factor( pca_application_train$TARGET, levels = c( 1, 0 ) )
+
+# split training data into training and validation sets
+set.seed(123)
+train_index <- createDataPartition( pca_application_train$TARGET, 
+                                    p = 0.7, 
+                                    list = FALSE )
+train <- pca_application_train[ train_index, ]
+valid <- pca_application_train[ -train_index, ]
+
+# down sample to deal with imbalanced data issues
+set.seed(123)
+train <- downSample( x = train[ , -which( names( train ) == "TARGET" ) ],
+                     y = train$TARGET,
+                     yname = "TARGET" )
+
+# train model on training set
+tree_model <- rpart ( TARGET ~ ., 
+                      data = train,
+                      method = "class",
+                      control = rpart.control( maxdepth = 5,
+                                               minsplit = 20,
+                                               cp = 0.01 ) )
+
+# evaluate on validation set
+valid_pred <- predict( tree_model, valid, type = "class" )
+confusion_matrix <- confusionMatrix( valid_pred, valid$TARGET )
+print( confusion_matrix )
+
+# predict on test data
+test_pred <- predict( tree_model, application_test_dt, type = "class" )
+application_test_dt$TARGET <- test_pred
+
+```
+
+#### Find Optimal Hyperparameters
+```{r }
+
+# create a function to evaluate model with different parameters
+evaluate_tree <- function( depth, minsplit, cp, train_data, valid_data ) {
+  
+  # train model
+  tree_model <- rpart( TARGET ~ ., 
+                       data = train_data,
+                       method = "class",
+                       control = rpart.control( maxdepth = depth,
+                                                minsplit = minsplit,
+                                                cp = cp ) )
+  
+  # predict on validation set
+  valid_pred <- predict( tree_model, valid_data, type = "class" )
+  
+  # calculate metrics
+  conf_matrix <- confusionMatrix( valid_pred, valid_data$TARGET )
+  
+  # return relevant metrics
+  return( list( accuracy = conf_matrix$overall[ "Accuracy" ],
+                sensitivity = conf_matrix$byClass[ "Sensitivity" ],
+                specificity = conf_matrix$byClass[ "Specificity" ], 
+                balanced_accuracy = conf_matrix$byClass[ "Balanced Accuracy" ],
+                kappa = conf_matrix$overall[ "Kappa" ] ) )
+  
+}
+
+# create parameter grid
+param_grid <- expand.grid( depth = c( 5, 7, 10, 15 ),
+                           minsplit = c( 10, 20, 50, 100 ),
+                           cp = c( 0.001, 0.01, 0.05 ) )
+
+# store results
+results <- data.frame()
+
+# perform grid search
+for( i in 1:nrow( param_grid ) ) {
+  
+  set.seed(123)
+  
+  # down sample training data
+  train_balanced <- downSample( x = train[ , -which( names( train ) == "TARGET" ) ],
+                                y = train$TARGET,
+                                yname = "TARGET" )
+  
+  # evaluate parameters
+  metrics <- evaluate_tree( depth = param_grid$depth[ i ],
+                            minsplit = param_grid$minsplit[ i ],
+                            cp = param_grid$cp[ i ],
+                            train_data = train_balanced,
+                            valid_data = valid )
+  
+  # store results
+  results <- rbind( results, 
+                    data.frame( depth = param_grid$depth[ i ], 
+                                minsplit = param_grid$minsplit[ i ], 
+                                cp = param_grid$cp[ i ],
+                                accuracy = metrics$accuracy,
+                                sensitivity = metrics$sensitivity,
+                                specificity = metrics$specificity,
+                                balanced_accuracy = metrics$balanced_accuracy,
+                                kappa = metrics$kappa ) )
+}
+
+# sort results by balanced accuracy
+results <- results[order( -results$balanced_accuracy ), ]
+
+# print top 5 parameter combinations
+print( "Top 5 parameter combinations by balanced accuracy:" )
+print( head( results, 5 ) )
+
+```
+
+#### Decision Tree w/ Optimal Hyper Parameters
+```{r }
+
+# convert TARGET to factor in training data with explicit levels
+application_train_dt$TARGET <- factor( application_train_dt$TARGET, levels = c( 1, 0 ) )
+
+# split training data into training and validation sets
+set.seed( 123 )
+train_index <- createDataPartition( application_train_dt$TARGET, 
+                                    p = 0.7, 
+                                    list = FALSE )
+train <- application_train_dt[ train_index, ]
+valid <- application_train_dt[ -train_index, ]
+
+# down sample to deal with imbalanced data issues
+set.seed( 123 )
+train <- downSample( x = train[, -which( names( train ) == "TARGET" )],
+                     y = train$TARGET,
+                     yname = "TARGET" )
+
+# train model on training set
+tree_model <- rpart ( TARGET ~ ., 
+                      data = train,
+                      method = "class",
+                      control = rpart.control( maxdepth = 10,
+                                               minsplit = 100,
+                                               cp = 0.001 ) )
+
+# evaluate on validation set
+valid_pred <- predict( tree_model, valid, type = "class" )
+confusion_matrix <- confusionMatrix( valid_pred, valid$TARGET )
+print( confusion_matrix )
+
+# predict on test data
+test_pred <- predict( tree_model, application_test_dt, type = "class" )
+application_test_dt$TARGET <- test_pred
+
+```
