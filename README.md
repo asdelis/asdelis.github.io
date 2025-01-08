@@ -10,7 +10,7 @@ A compilation of data analytics projects that showcase my growing data analytics
 - A Kaggle competition project
 - Six marketing focused data analytics cases
 
-### Home Credit Kaggle Competition
+### 1. Home Credit Kaggle Competition
 
 Home Credit is a loan provider with a mission to “broaden financial inclusion for the unbanked population by providing a positive and safe borrowing experience.” Understanding the real indicators for a prospective client’s repayment ability is imperative to their financial and existential missions.
 
@@ -33,7 +33,7 @@ This was my first time working with a very large and imperfect data set. My big 
 
 [Here is the full RMD file if you want to see all of my code for the project.](https://github.com/asdelis/asdelis.github.io/blob/main/data_analytics_projects/home_credit_kaggle_competition/home_credit_modeling.Rmd)
 
-### Marketing Analytics Cases
+### 2. Marketing Analytics Cases
 
 A compilation of shorter data analytics projects focused on solving a marketing problem with a specific testing method or pre-processing technique.
 
