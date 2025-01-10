@@ -1,12 +1,8 @@
-# Portfolio Projects
+### Data Analytics Projects :
 
-This repository contains two main project collections:
-1. [Data Analytics Projects](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects)
-2. [Java Projects](https://github.com/asdelis/asdelis.github.io/tree/main/java_projects)
+- [TV Show Popularity Analysis](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects/tv_popularity_analysis)
+- [Home Credit Kaggle Competition Project](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects/home_credit_kaggle_competition)
+- [Six Marketing Focused Data Analytics Cases](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects/marketing_analytics_cases)
 
-## Data Analytics Projects :
+A detailed desciption of each project is included in their respective folders. That is where the links above will take you.
 
-A compilation of data analytics projects that showcase my growing data analytics skills that currently includes:
-- Analysis Of TV Show Popularity
-- Home Credit Kaggle Competition Project
-- Six Marketing Focused Data Analytics Cases
