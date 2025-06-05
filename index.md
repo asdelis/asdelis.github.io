@@ -2,7 +2,7 @@
 
 ## Data Analytics Projects
 
-- [SWIRE COCA-COLA Distribution Project](swire_distribution.md)
+- [SWIRE COCA-COLA Distribution Project Page](swire_distribution.md)
 
 ### [SWIRE COCA-COLA Distribution Project](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects/swire_distribution_project)
 
