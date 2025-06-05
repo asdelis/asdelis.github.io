@@ -2,6 +2,8 @@
 
 ## Data Analytics Projects
 
+- [SWIRE COCA-COLA Distribution Project](swire_project.md)
+
 ### [SWIRE COCA-COLA Distribution Project](https://github.com/asdelis/asdelis.github.io/tree/main/data_analytics_projects/swire_distribution_project)
 
 This is a capstone project hosted by the Coca-Cola Bottler Swire. They generously gave our class customer, transaction, and some cost data and asked us to come up with insight into how they should determine which customers' distribution should be outsourced. They value being the distributor to their clients due to the relationships they are able to build through the process, but it is much more expensive than the third parties they occasionally use.
