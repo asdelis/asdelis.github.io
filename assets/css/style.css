@@ -3,18 +3,31 @@
 
 @import "jekyll-theme-minimal";
 
-/* Custom overrides must come after the theme import */
-.title-image-container {
-    text-align: right;
+/* Force centering the container */
+header .title-image-container {
+    text-align: center !important;
 }
-.site-title {
-    margin-bottom: 10px;
-    text-align: right; /* extra specificity in case theme affects it */
+
+/* Force centering the <h1> title */
+header .title-image-container h1,
+header .title-image-container h1 a {
+    display: block !important;
+    margin: 0 auto !important;
+    text-align: center !important;
+    font-size: 2.5em;
+    color: #000;
 }
+
+/* Center the image as a block */
 .site-logo {
-    display: block;
-    margin: 0 auto;
+    display: block !important;
+    margin: 10px auto !important;
     max-width: 200px;
     height: auto;
 }
+
+body {
+    border: 5px solid red;
+}
+
 
