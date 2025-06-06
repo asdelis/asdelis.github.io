@@ -1,0 +1,19 @@
+
+/* Center the site title from _config.yml */
+.site-title {
+    text-align: center;
+    display: block;
+    margin: 1.5em auto;
+    font-size: 2.5em;
+  }
+  
+  .site-header {
+    text-align: center;
+  }
+
+  .site-title a {
+    text-decoration: none;
+    color: #222;
+  }
+  
+  
