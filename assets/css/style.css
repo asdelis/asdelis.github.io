@@ -5,11 +5,11 @@
 
 /* Custom overrides must come after the theme import */
 .title-image-container {
-    text-align: center;
+    text-align: right;
 }
 .site-title {
     margin-bottom: 10px;
-    text-align: center; /* extra specificity in case theme affects it */
+    text-align: right; /* extra specificity in case theme affects it */
 }
 .site-logo {
     display: block;
