@@ -2,13 +2,19 @@
 ---
 
 @import "jekyll-theme-minimal";
+
+/* Custom overrides must come after the theme import */
 .title-image-container {
     text-align: center;
 }
 .site-title {
     margin-bottom: 10px;
+    text-align: center; /* extra specificity in case theme affects it */
 }
 .site-logo {
+    display: block;
+    margin: 0 auto;
     max-width: 200px;
     height: auto;
 }
+
