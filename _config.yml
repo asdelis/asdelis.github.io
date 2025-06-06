@@ -8,7 +8,7 @@ description: >
   <a href="https://www.linkedin.com/in/andrewdelis/">View My LinkedIn Profile </a>  
 
 plugins:
-  - jekyll-seo-tag
+  - jekyll-theme-minimal
 
 include:
   - assets/css/style.css
