@@ -11,5 +11,6 @@ description: >
 
 theme: null
 
-plugins:
+  plugins:
   - jekyll-remote-theme
+  - jekyll-seo-tag
