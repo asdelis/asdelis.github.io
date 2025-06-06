@@ -7,8 +7,7 @@ description: >
   <br><br>
   <a href="https://www.linkedin.com/in/andrewdelis/">View My LinkedIn Profile </a>  
 
+remote_theme: pages-themes/minimal@v0.2.0
+
 plugins:
   - jekyll-theme-minimal
-
-include:
-  - assets/css/style.css
