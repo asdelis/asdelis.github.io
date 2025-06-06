@@ -2,17 +2,13 @@
 ---
 
 @import "jekyll-theme-minimal";
-
 .title-image-container {
     text-align: center;
-  }
-  
-  .site-title {
+}
+.site-title {
     margin-bottom: 10px;
-  }
-  
-  .site-logo {
+}
+.site-logo {
     max-width: 200px;
     height: auto;
-  }
-  
+}
