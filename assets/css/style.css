@@ -1,19 +1,16 @@
-
-/* Center the site title from _config.yml */
-.site-title {
+/* Center the main site title (Andrew Delis) */
+header > h1 {
     text-align: center;
     display: block;
     margin: 1.5em auto;
     font-size: 2.5em;
   }
   
-  .site-header {
-    text-align: center;
-  }
-
-  .site-title a {
+  /* Remove link underline and set color */
+  header > h1 > a {
     text-decoration: none;
     color: #222;
   }
+  
   
   
