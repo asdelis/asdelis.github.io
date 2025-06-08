@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Left Side - Dynamic Content -->
+        <div class="left-side">
+            <div id="content">
+                <h2>My Projects</h2>
+                <nav class="project-nav">
+                    <ul>
+                        <li><a href="#" onclick="loadProject('project1')">Sales Analysis Dashboard</a></li>
+                        <li><a href="#" onclick="loadProject('project2')">Customer Segmentation</a></li>
+                        <li><a href="#" onclick="loadProject('project3')">Predictive Modeling</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Right Side - Static Profile -->
+        <div class="right-side">
+            <div class="profile">
+                <img src="assets/profile-photo.jpg" alt="Your Name" class="profile-photo">
+                <h1>Your Name</h1>
+                <p class="bio">
+                    Data Analyst with 3+ years of experience in business intelligence, 
+                    statistical analysis, and data visualization. Passionate about 
+                    turning data into actionable insights.
+                </p>
+                <div class="links">
+                    <a href="https://linkedin.com/in/yourprofile" target="_blank">LinkedIn</a>
+                    <a href="https://github.com/yourusername" target="_blank">GitHub</a>
+                    <a href="mailto:your.email@example.com">Email</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
