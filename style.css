@@ -23,8 +23,6 @@ body {
 
 /* Right Side - Static Profile */
 .right-side {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
     padding: 40px;
     display: flex;
     align-items: center;
@@ -32,6 +30,8 @@ body {
 
 /* Left Side - Dynamic Content */
 .left-side {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     padding: 40px;
     overflow-y: auto;
 }
