@@ -13,7 +13,7 @@ body {
 
 .container {
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 400px 1fr;
     min-height: 100vh;
     max-width: 1200px;
     margin: 0 auto;
@@ -21,13 +21,22 @@ body {
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
-/* Left Side - Dynamic Content */
+/* Left Side - Static Profile */
 .left-side {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    display: flex;
+    align-items: center;
+}
+
+/* Right Side - Dynamic Content */
+.right-side {
     padding: 40px;
     overflow-y: auto;
 }
 
-.left-side h2 {
+.right-side h2 {
     color: #2c3e50;
     margin-bottom: 30px;
     font-size: 2em;
@@ -162,12 +171,12 @@ body {
         grid-template-rows: auto 1fr;
     }
     
-    .right-side {
+    .left-side {
         order: -1;
         padding: 30px 20px;
     }
     
-    .left-side {
+    .right-side {
         padding: 30px 20px;
     }
     
