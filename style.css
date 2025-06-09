@@ -21,32 +21,28 @@ body {
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
-/* Left Side - Static Profile */
-.left-side {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+/* Right Side - Static Profile */
+.right-side {
     padding: 40px;
     display: flex;
     align-items: center;
 }
 
-/* Right Side - Dynamic Content */
-.right-side {
+/* Left Side - Dynamic Content */
+.left-side {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     padding: 40px;
     overflow-y: auto;
 }
 
 .right-side h2 {
-    color: #2c3e50;
     margin-bottom: 30px;
     font-size: 2em;
 }
 
 .project-nav ul {
     list-style: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 .project-nav li {
@@ -55,15 +51,13 @@ body {
 
 .project-nav a {
     display: block;
-    padding: 15px 30px;
+    padding: 15px 20px;
     background: #ecf0f1;
     color: #2c3e50;
     text-decoration: none;
     border-radius: 8px;
     transition: all 0.3s ease;
     border-left: 4px solid transparent;
-    width: 300px;
-    text-align: center;
 }
 
 .project-nav a:hover {
@@ -91,8 +85,6 @@ body {
 
 /* Right Side - Static Profile */
 .right-side {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
     padding: 40px;
     display: flex;
     align-items: center;
