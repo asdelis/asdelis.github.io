@@ -21,19 +21,19 @@ body {
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
-/* Right Side - Static Profile */
-.right-side {
-    padding: 40px;
-    display: flex;
-    align-items: center;
-}
-
-/* Left Side - Dynamic Content */
+/* Left Side - Static Profile */
 .left-side {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     padding: 40px;
     overflow-y: auto;
+}
+
+/* Right Side - Dynamic Content */
+.right-side {
+    padding: 80px;
+    display: flex;
+    align-items: center;
 }
 
 .right-side h2 {
