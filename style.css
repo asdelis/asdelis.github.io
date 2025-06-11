@@ -23,7 +23,7 @@ body {
 
 .left-side {
     background: linear-gradient(135deg, #035b2e 0%, #048d47 100%);
-    color: black;
+    color: white;
     padding: 40px;
     display: flex;
     align-items: center;
