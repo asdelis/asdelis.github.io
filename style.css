@@ -163,10 +163,16 @@ body {
 .project-content ul {
     margin-left: 20px;
     margin-bottom: 15px;
+    justify-content: left;
+    align-items: left;
+    text-align: left;
 }
 
 .project-content li {
     margin-bottom: 8px;
+    justify-content: left;
+    align-items: left;
+    text-align: left;
 }
 
 @media (max-width: 768px) {
